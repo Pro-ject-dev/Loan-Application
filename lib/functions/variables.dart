@@ -29,7 +29,7 @@ List user_details = [];
 List<List<dynamic>> report_data = [];
 List<List<dynamic>> data_report = [];
 
-var ip = "https://finance-app-b924.onrender.com";
+var ip = "https://finan.com";
 
 var duplicate;
 insert_Borrow(
