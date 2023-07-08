@@ -33,7 +33,7 @@ var gettingareaemi = '';
 
 var dt;
 
-var ip = "https://finance-app-b924.onrender.com";
+var ip = "https://finan.com";
 
 var duplicate;
 insert_Borrow(
