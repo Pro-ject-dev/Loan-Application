@@ -1,18 +1,13 @@
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:finance_user/functions/variables.dart';
 import 'package:finance_user/screen/drawer.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../color_and_styles.dart';
-import 'borrower.dart';
-import 'collection.dart';
 import 'loan.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class report extends StatefulWidget {
@@ -108,7 +103,6 @@ class _reportState extends State<report> {
                     style: ElevatedButton.styleFrom(
                         backgroundColor: first, shape: const StadiumBorder()),
                     onPressed: () async {
-                      var dt;
                       if (filter.text == "Today") {
                         dt = date();
                       } else {
@@ -142,6 +136,7 @@ class _reportState extends State<report> {
 
   Future<void> createPdf() async {
     final List<String> headers = [
+      'S.No',
       'ID',
       'Name',
       'Area',
@@ -174,6 +169,17 @@ class _reportState extends State<report> {
                           fontWeight: pw.FontWeight.bold,
                         ))),
                 pw.SizedBox(height: 10),
+                pw.Row(mainAxisAlignment: pw.MainAxisAlignment.end, children: [
+                  pw.Padding(
+                      padding: pw.EdgeInsets.all(4),
+                      child: pw.Text("Date: $dt",
+                          style: pw.TextStyle(
+                            color: PdfColor.fromInt(0xff000000),
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          )))
+                ]),
+                pw.SizedBox(height: 10),
                 pw.Table.fromTextArray(
                   cellAlignment: pw.Alignment.center,
                   headerDecoration: const pw.BoxDecoration(
@@ -191,7 +197,7 @@ class _reportState extends State<report> {
                   cellPadding: const pw.EdgeInsets.all(5),
                   columnWidths: {
                     0: const pw.FixedColumnWidth(40),
-                    1: const pw.FixedColumnWidth(50),
+                    1: const pw.FixedColumnWidth(40),
                     2: const pw.FixedColumnWidth(50),
                     3: const pw.FixedColumnWidth(50),
                     4: const pw.FixedColumnWidth(50),
@@ -199,11 +205,12 @@ class _reportState extends State<report> {
                     6: const pw.FixedColumnWidth(50),
                     7: const pw.FixedColumnWidth(50),
                     8: const pw.FixedColumnWidth(50),
-                    9: const pw.FixedColumnWidth(45),
+                    9: const pw.FixedColumnWidth(50),
                     10: const pw.FixedColumnWidth(45),
                     11: const pw.FixedColumnWidth(45),
                     12: const pw.FixedColumnWidth(45),
                     13: const pw.FixedColumnWidth(45),
+                    14: const pw.FixedColumnWidth(45),
                   },
                 )
               ]),
