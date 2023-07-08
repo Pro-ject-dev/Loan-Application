@@ -1,17 +1,19 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
-import 'package:finance_user/color_and_styles.dart';
-import 'package:finance_user/functions/variables.dart';
-import 'package:finance_user/screen/collectionwidget.dart';
 import 'package:finance_user/screen/constantapi.dart';
-import 'package:finance_user/screen/drawer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import '../color_and_styles.dart';
+import '../functions/variables.dart';
 import 'borrower.dart';
-import 'loan.dart';
-import 'report.dart';
+import 'collectionwidget.dart';
+import 'drawer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+// ignore: camel_case_types show constantapi, camel_case_types
 class collection extends StatefulWidget {
   const collection({super.key});
 
@@ -21,7 +23,6 @@ class collection extends StatefulWidget {
 
 // ignore: camel_case_types
 class _collectionState extends State<collection> {
-  var user = "Hello";
   var c_type = "Daily";
   bool collectionccheck = true;
   List<dynamic> LoanTotalEmi = [];
@@ -30,6 +31,27 @@ class _collectionState extends State<collection> {
   var TotalAmount = "0";
   var TotalEmi = "0";
   late Timer _timer;
+  bool isload = true;
+
+  static Future<dynamic> CompleteCollection(String Amount) async {
+    final http.Response response = await http.post(
+      Uri.parse('$ip/collection/CompleteCollection'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(
+        <String, String>{
+          'AgentId': store.read('id').toString(),
+          'collectionAmount': Amount,
+        },
+      ),
+    );
+    if (response.statusCode == 200) {
+      if (kDebugMode) {
+        print("Completed");
+      }
+    }
+  }
 
   GetLoanTotalEmi() async {
     final http.Response response = await http.post(
@@ -40,6 +62,7 @@ class _collectionState extends State<collection> {
       body: jsonEncode(
         <String, String>{
           'Type': c_type,
+          'Area': gettingareaemi,
         },
       ),
     );
@@ -75,6 +98,7 @@ class _collectionState extends State<collection> {
       body: jsonEncode(
         <String, String>{
           'Type': c_type,
+          'Area': gettingareaemi,
         },
       ),
     );
@@ -103,11 +127,17 @@ class _collectionState extends State<collection> {
 
   @override
   void initState() {
-    _timer = Timer.periodic(
-        const Duration(seconds: 3), (timer) => GetLoanTotalEmi());
+    constantapi().collectionchecking().whenComplete(() {
+      print(isload);
 
-    _timer = Timer.periodic(
-        const Duration(seconds: 3), (timer) => GetLoanTotalAmount());
+      _timer = Timer.periodic(
+          const Duration(seconds: 3), (timer) => GetLoanTotalEmi());
+
+      _timer = Timer.periodic(
+          const Duration(seconds: 3), (timer) => GetLoanTotalAmount());
+      isload = false;
+    });
+
     super.initState();
   }
 
@@ -121,6 +151,7 @@ class _collectionState extends State<collection> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: first),
@@ -133,145 +164,169 @@ class _collectionState extends State<collection> {
         backgroundColor: second,
       ),
       drawer: drawer(),
-      body: Scrollbar(
-        interactive: true,
-        thickness: 8.0,
-        child: SingleChildScrollView(
-          child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-                  SizedBox(
-                    width: size.width * 0.9,
-                    height: size.height * 0.05,
-                    child: TextFormField(
-                      readOnly: true,
-                      cursorColor: first,
-                      controller: filter,
-                      decoration: InputDecoration(
-                          hintText: "Pick a Date",
-                          prefixIcon: const Icon(Icons.tune),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.search),
-                            onPressed: () {},
-                          ),
-                          contentPadding: const EdgeInsets.only(left: 10),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: first),
-                            borderRadius: BorderRadius.circular(10),
-                          )),
-                      keyboardType: TextInputType.datetime,
-                      onTap: () async {
-                        DateTime? d_pick = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
-                          builder: (context, child) {
-                            return Theme(
-                              data: Theme.of(context).copyWith(
-                                colorScheme: ColorScheme.light(
-                                  primary: first,
-                                  onPrimary: Colors.white,
-                                  onSurface: Colors.black,
-                                ),
-                                textButtonTheme: TextButtonThemeData(
-                                  style: TextButton.styleFrom(
-                                    primary: first,
-                                  ),
-                                ),
-                              ),
-                              child: child!,
-                            );
-                          },
-                        );
-                        var date = DateTime.parse(d_pick.toString());
-                        var correct_format =
-                            "${date.day}-${date.month}-${date.year}";
+      body: isload
+          ? Center(child: CircularProgressIndicator(color: first))
+          : check_col
+              ? Scrollbar(
+                  interactive: true,
+                  thickness: 8.0,
+                  child: SingleChildScrollView(
+                    child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: size.height * 0.02,
+                            ),
+                            SizedBox(
+                              width: size.width * 0.9,
+                              height: size.height * 0.05,
+                              child: TextFormField(
+                                readOnly: true,
+                                cursorColor: first,
+                                controller: filter,
+                                decoration: InputDecoration(
+                                    hintText: "Pick a Date",
+                                    prefixIcon: const Icon(Icons.tune),
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.search),
+                                      onPressed: () {},
+                                    ),
+                                    contentPadding:
+                                        const EdgeInsets.only(left: 10),
+                                    fillColor: Colors.white,
+                                    filled: true,
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(color: first),
+                                      borderRadius: BorderRadius.circular(10),
+                                    )),
+                                keyboardType: TextInputType.datetime,
+                                onTap: () async {
+                                  DateTime? d_pick = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2101),
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: ColorScheme.light(
+                                            primary: first,
+                                            onPrimary: Colors.white,
+                                            onSurface: Colors.black,
+                                          ),
+                                          textButtonTheme: TextButtonThemeData(
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: first,
+                                            ),
+                                          ),
+                                        ),
+                                        child: child!,
+                                      );
+                                    },
+                                  );
+                                  var date = DateTime.parse(d_pick.toString());
+                                  var correct_format =
+                                      "${date.day}-${date.month}-${date.year}";
 
-                        filter.text = correct_format;
-                      },
+                                  filter.text = correct_format;
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              height: size.height * 0.02,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                SizedBox(
+                                  height: size.height * 0.05,
+                                  width: size.width * 0.5,
+                                  child: RadioListTile(
+                                      activeColor: first,
+                                      value: "Daily",
+                                      title: const Text("Daily"),
+                                      groupValue: c_type,
+                                      onChanged: (select) {
+                                        setState(() {
+                                          if (c_type == 'Weekly') {
+                                            collectionccheck = true;
+                                          }
+                                          if (kDebugMode) {
+                                            print("Daily:$collectionccheck");
+                                          }
+                                          c_type = select!;
+                                          if (kDebugMode) {
+                                            print(c_type);
+                                          }
+                                        });
+                                      }),
+                                ),
+                                SizedBox(
+                                  height: size.height * 0.05,
+                                  width: size.width * 0.5,
+                                  child: RadioListTile(
+                                      activeColor: first,
+                                      value: "Weekly",
+                                      title: const Text("weekly"),
+                                      groupValue: c_type,
+                                      onChanged: (select) {
+                                        setState(() {
+                                          if (c_type == 'Daily') {
+                                            collectionccheck = false;
+                                          }
+                                          if (kDebugMode) {
+                                            print("weekly:$collectionccheck");
+                                          }
+                                          c_type = select!;
+                                          if (kDebugMode) {
+                                            print(c_type);
+                                          }
+                                        });
+                                      }),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: size.height * 0.02,
+                            ),
+                            Visibility(
+                              visible: collectionccheck,
+                              child: const collectionwidget(
+                                loanformate: "Daily",
+                              ),
+                            ),
+                            Visibility(
+                              visible: !collectionccheck,
+                              child:
+                                  const collectionwidget(loanformate: "Weekly"),
+                            ),
+                            const SizedBox(
+                              height: 2,
+                            )
+                          ],
+                        )),
+                  ),
+                )
+              : Center(
+                  child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Lottie.asset(
+                      'Assets/completed.json',
+                      width: 300,
+                      height: 300,
+                      fit: BoxFit.cover,
                     ),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      SizedBox(
-                        height: size.height * 0.05,
-                        width: size.width * 0.5,
-                        child: RadioListTile(
-                            activeColor: first,
-                            value: "Daily",
-                            title: const Text("Daily"),
-                            groupValue: c_type,
-                            onChanged: (select) {
-                              setState(() {
-                                if (c_type == 'Weekly') {
-                                  collectionccheck = true;
-                                }
-                                if (kDebugMode) {
-                                  print("Daily:$collectionccheck");
-                                }
-                                c_type = select!;
-                                if (kDebugMode) {
-                                  print(c_type);
-                                }
-                              });
-                            }),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.05,
-                        width: size.width * 0.5,
-                        child: RadioListTile(
-                            activeColor: first,
-                            value: "Weekly",
-                            title: const Text("weekly"),
-                            groupValue: c_type,
-                            onChanged: (select) {
-                              setState(() {
-                                if (c_type == 'Daily') {
-                                  collectionccheck = false;
-                                }
-                                if (kDebugMode) {
-                                  print("weekly:$collectionccheck");
-                                }
-                                c_type = select!;
-                                if (kDebugMode) {
-                                  print(c_type);
-                                }
-                              });
-                            }),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-                  Visibility(
-                    visible: collectionccheck,
-                    child: const collectionwidget(
-                      loanformate: "Daily",
-                    ),
-                  ),
-                  Visibility(
-                    visible: !collectionccheck,
-                    child: const collectionwidget(loanformate: "Weekly"),
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  )
-                ],
-              )),
-        ),
-      ),
+                    Text(
+                      "Today collection is completed !",
+                      style: TextStyle(
+                          fontSize: 17,
+                          color: first,
+                          fontWeight: FontWeight.w500),
+                    )
+                  ],
+                )),
       bottomNavigationBar: Card(
           child: SizedBox(
         height: size.height * 0.07,
@@ -296,21 +351,23 @@ class _collectionState extends State<collection> {
           ],
         ),
       )),
-      floatingActionButton: ElevatedButton(
-        onPressed: () async {
-          await constantapi.CompleteCollection(TotalAmount).whenComplete(() {
-            Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (BuildContext context) => const borrower()));
-          });
-        },
-        style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(first),
-            shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)))),
-        child: const Text("Collection Complete"),
-      ),
+      floatingActionButton: check_col
+          ? ElevatedButton(
+              onPressed: () async {
+                await CompleteCollection(TotalAmount).whenComplete(() {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => const borrower()));
+                });
+              },
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(first),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)))),
+              child: const Text("Collection Complete"),
+            )
+          : Container(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

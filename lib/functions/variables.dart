@@ -11,6 +11,7 @@ import 'package:pdf/pdf.dart';
 
 List? datas;
 List? datas1;
+bool check_col = false;
 
 var store = GetStorage();
 
@@ -28,6 +29,9 @@ List user_details = [];
 
 List<List<dynamic>> report_data = [];
 List<List<dynamic>> data_report = [];
+var gettingareaemi = '';
+
+var dt;
 
 var ip = "https://finance-app-b924.onrender.com";
 
@@ -65,7 +69,7 @@ Future fetch_borrower() async {
   final response = await http.get(Uri.parse('$ip/Borrower'));
   if (response.statusCode == 200) {
     datas = jsonDecode(response.body);
-    print(datas);
+    //  print(datas);
   } else {
     throw Exception('Failed to load data');
   }
@@ -80,7 +84,7 @@ insert_Loan(
     String type_loan,
     String Loanid,
     String del_amt) async {
-  print(loan_amt);
+  // print(loan_amt);
   http.Response res = await http.post(
     Uri.parse('$ip/AddLoan'),
     headers: <String, String>{
@@ -108,7 +112,7 @@ Future fetch_loan() async {
   final response = await http.get(Uri.parse('$ip/loan'));
   if (response.statusCode == 200) {
     datas1 = jsonDecode(response.body);
-    print(datas1);
+    // print(datas1);
   } else {
     throw Exception('Failed to load data');
   }
@@ -130,7 +134,6 @@ Future getdate(String Loanid) async {
     actual_dt = [];
     dates = jsonDecode(res.body);
     for (var i = 0; i < dates!.length; i++) [actual_dt.add(dates![i]["Date"])];
-    print(actual_dt);
   } else {
     throw Exception('Failed to load data');
   }
@@ -138,7 +141,7 @@ Future getdate(String Loanid) async {
 
 Future getAmt(String date, loanid) async {
   http.Response res = await http.post(
-    Uri.parse('i$ip/getAmt'),
+    Uri.parse('$ip/getAmt'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -179,7 +182,7 @@ Future pdf_report(date) async {
     for (var i = 0; i < report_data[0].length; i++) {
       data_report.add(report_data[0][i]);
     }
-    print(data_report);
+    // print(data_report);
   } else {
     throw Exception('Failed to load data');
   }

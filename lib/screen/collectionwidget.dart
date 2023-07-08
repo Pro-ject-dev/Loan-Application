@@ -1,12 +1,15 @@
-// ignore_for_file: camel_case_types, non_constant_identifier_names, unused_local_variable
+// ignore_for_file: camel_case_types, non_constant_identifier_names, unused_local_variable, no_leading_underscores_for_local_identifiers
 import 'dart:async';
-import 'package:finance_user/color_and_styles.dart';
-import 'package:finance_user/functions/variables.dart';
-import 'package:finance_user/screen/dilogue.dart';
+
+import 'package:finance_user/screen/bottom_sheet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../color_and_styles.dart';
+import '../functions/variables.dart';
+import 'dilogue.dart';
 
 class collectionwidget extends StatefulWidget {
   final String loanformate;
@@ -48,14 +51,12 @@ class _collectionwidgetState extends State<collectionwidget> {
                 once = false;
               }
             }
-            if (kDebugMode) {
-              print("FinanceLoanData:$FinanceLoan");
-            }
+            if (kDebugMode) {}
             // _streamController.add(FinanceArea);
           });
         }
         if (kDebugMode) {
-          print(FinanceArea);
+          //  print(FinanceArea);
         }
       } else {
         if (kDebugMode) {
@@ -105,7 +106,9 @@ class _collectionwidgetState extends State<collectionwidget> {
 
   Future LoanPayAmount(
       String LoanCode, String LoanPaidAmount, String AgentId) async {
-    print(AgentId);
+    if (kDebugMode) {
+      //  print(AgentId);
+    }
     try {
       http.Response res = await http.post(
         Uri.parse('$ip/collection/PayAmount'),
@@ -136,7 +139,7 @@ class _collectionwidgetState extends State<collectionwidget> {
     }
   }
 
-  GetLoanUserData(String LoanCode) async {
+  Future GetLoanUserData(String LoanCode) async {
     final http.Response response = await http.post(
       Uri.parse('$ip/collection/GetLoanuserData'),
       headers: <String, String>{
@@ -153,7 +156,7 @@ class _collectionwidgetState extends State<collectionwidget> {
         LoanUserData = jsonDecode(response.body);
       });
       if (kDebugMode) {
-        print("LoanUserData:$LoanUserData");
+        //   print("LoanUserData:$LoanUserData");
       }
     }
   }
@@ -175,7 +178,7 @@ class _collectionwidgetState extends State<collectionwidget> {
         LoanCompletedata = jsonDecode(response.body);
       });
       if (kDebugMode) {
-        print("LoanCompletedata:$LoanCompletedata");
+        //  print("LoanCompletedata:$LoanCompletedata");
       }
     }
   }
@@ -197,7 +200,7 @@ class _collectionwidgetState extends State<collectionwidget> {
         LoanCompletedata = jsonDecode(response.body);
       });
       if (kDebugMode) {
-        print("LoanCompletedata:$LoanCompletedata");
+        //  print("LoanCompletedata:$LoanCompletedata");
       }
     }
   }
@@ -219,7 +222,7 @@ class _collectionwidgetState extends State<collectionwidget> {
         LoanCompletedata = jsonDecode(response.body);
       });
       if (kDebugMode) {
-        print("LoanCompletedata:$LoanCompletedata");
+        //  print("LoanCompletedata:$LoanCompletedata");
       }
     }
   }
@@ -255,6 +258,10 @@ class _collectionwidgetState extends State<collectionwidget> {
                   if (kDebugMode) {
                     print(CollectionArea["Area"]);
                   }
+                  gettingareaemi = CollectionArea["Area"];
+                  if (kDebugMode) {
+                    print("gettingareaemi:$gettingareaemi");
+                  }
                   GetLoanDetail(CollectionArea["Area"], widget.loanformate);
                   if (kDebugMode) {
                     print("FinanceLoan:$FinanceLoan");
@@ -282,14 +289,6 @@ class _collectionwidgetState extends State<collectionwidget> {
                         children: [
                           StatefulBuilder(builder:
                               (BuildContext context, StateSetter setState) {
-                            // if (snapshot.hasError) {
-                            //   return Column(
-                            //     children: const [
-                            //       Center(
-                            //           child: CircularProgressIndicator()),
-                            //     ],
-                            //   );
-                            // }
                             return ListView.builder(
                               shrinkWrap: true,
                               physics: const BouncingScrollPhysics(),
@@ -301,20 +300,34 @@ class _collectionwidgetState extends State<collectionwidget> {
                                 TextEditingController pay =
                                     TextEditingController();
                                 final _focusNode = FocusNode();
-                                // final currentFocus = FocusScope.of(context);
-                                // if (kDebugMode) {
-                                //   print(
-                                //       "length:${FinanceLoan[CollectionArea["Area"].toString()][0].length}");
-                                //   print(
-                                //       "Data:${FinanceLoan[CollectionArea["Area"].toString()][0][indexs]["Lcode"]}");
-                                // }
 
                                 return GestureDetector(
                                   onTap: () {
                                     var Lcode = FinanceLoan[
                                             CollectionArea["Area"].toString()]
                                         [0][indexs]["Lcode"];
-                                    collectionbottomsheet(context, size, Lcode);
+
+                                    getdate(Lcode).whenComplete(() {
+                                      GetLoanUserData(Lcode).whenComplete(() {
+                                        newMethod(
+                                            context,
+                                            size,
+                                            LoanUserData[0][0]["Name"]
+                                                .toString(),
+                                            LoanUserData[0][0]["Amount"]
+                                                .toString(),
+                                            LoanUserData[0][0]["Start"]
+                                                .toString(),
+                                            LoanUserData[0][0]["End"]
+                                                .toString(),
+                                            LoanUserData[0][0]["Due"]
+                                                .toString(),
+                                            (int.parse(LoanUserData[0][0]
+                                                        ["Amount"]) -
+                                                    LoanUserData[0][0]["Due"])
+                                                .toString());
+                                      });
+                                    });
                                   },
                                   child: Card(
                                     elevation: 8,
@@ -357,18 +370,6 @@ class _collectionwidgetState extends State<collectionwidget> {
                                                     controller: pay,
                                                     autofocus: true,
                                                     onFieldSubmitted: (value) {
-                                                      // FocusScope.of(context)
-                                                      //     .unfocus();
-                                                      // FocusScopeNode
-                                                      //     currentFocus =
-                                                      //     FocusScope.of(
-                                                      //         context);
-                                                      // if (!currentFocus
-                                                      //     .hasPrimaryFocus) {
-                                                      //   currentFocus
-                                                      //       .focusedChild
-                                                      //       ?.unfocus();
-                                                      // }
                                                       if (kDebugMode) {
                                                         print(
                                                             "${FinanceLoan[CollectionArea["Area"].toString()][0][indexs]["Lcode"]}");
@@ -393,16 +394,8 @@ class _collectionwidgetState extends State<collectionwidget> {
                                                             showDialogue(
                                                                 context,
                                                                 "Paid Successful",
-                                                                "Paid Amount : " +
-                                                                    pay.text +
-                                                                    ".00" +
-                                                                    "\nPaid by : " +
-                                                                    FinanceLoan[CollectionArea["Area"].toString()][0]
-                                                                            [
-                                                                            indexs]
-                                                                        [
-                                                                        "Name"] +
-                                                                    "\nPayment collected by : " +
+                                                                // ignore: prefer_interpolation_to_compose_strings
+                                                                "${"Paid Amount : " + pay.text + ".00" + "\nPaid by : " + FinanceLoan[CollectionArea["Area"].toString()][0][indexs]["Name"]}\nPayment collected by : " +
                                                                     store.read(
                                                                         "Name"));
                                                             // GetArea();
@@ -560,16 +553,7 @@ class _collectionwidgetState extends State<collectionwidget> {
                                                             showDialogue(
                                                                 context,
                                                                 "Paid Successful",
-                                                                "Paid Amount : " +
-                                                                    pay.text +
-                                                                    ".00" +
-                                                                    "\nPaid by : " +
-                                                                    FinanceLoan[CollectionArea["Area"].toString()][0]
-                                                                            [
-                                                                            indexs]
-                                                                        [
-                                                                        "Name"] +
-                                                                    "\nAmount collected by : " +
+                                                                "${"Paid Amount : " + pay.text + ".00" + "\nPaid by : " + FinanceLoan[CollectionArea["Area"].toString()][0][indexs]["Name"]}\nAmount collected by : " +
                                                                     store.read(
                                                                         "Name"));
 
@@ -643,177 +627,6 @@ class _collectionwidgetState extends State<collectionwidget> {
           );
         },
       ),
-    );
-  }
-
-  Future<dynamic> collectionbottomsheet(
-      BuildContext context, Size size, String LoanCode) {
-    return showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SizedBox(
-          height: size.height * 0.35, // <-- Added fixed height
-          child: FutureBuilder(
-              future: GetLoanUserData(LoanCode),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                return SingleChildScrollView(
-                  // color: Colors.green,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: size.height * 0.02,
-                      ),
-                      SizedBox(
-                        child: Text(
-                          "Name : ${LoanUserData[0][0]["Name"]}",
-                          style: loan_details_design,
-                        ),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.02,
-                      ),
-                      SizedBox(
-                        child: Text(
-                          "Loan Amount : ${LoanUserData[0][0]["Amount"]}",
-                          style: loan_details_design,
-                        ),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.02,
-                      ),
-                      SizedBox(
-                        child: Text(
-                          "Given On : ${LoanUserData[0][0]["Start"]}",
-                          style: loan_details_design,
-                        ),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.02,
-                      ),
-                      SizedBox(
-                        child: Text(
-                          "Amount Due : " +
-                              (int.parse(LoanUserData[0][0]["Amount"]) -
-                                      LoanUserData[0][0]["Due"])
-                                  .toString(),
-                          style: loan_details_design,
-                        ),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.02,
-                      ),
-                      SizedBox(
-                        child: Text(
-                          "End Date :  ${LoanUserData[0][0]["End"]}",
-                          style: loan_details_design,
-                        ),
-                      ),
-                      SizedBox(
-                        height: size.height * 0.02,
-                      ),
-                      FutureBuilder(
-                          future: GetLoanCompleteData(LoanCode),
-                          builder: (context, snapshots) {
-                            if (!snapshots.hasData == false) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            return Row(
-                              children: [
-                                SizedBox(
-                                  width: size.width * 0.03,
-                                ),
-                                Container(
-                                  height: 100,
-                                  child: Column(
-                                    children: [
-                                      Text("Total Amount",
-                                          style: loan_details_design),
-                                      CircleAvatar(
-                                          radius: size.width * 0.08,
-                                          backgroundColor: Colors.green[400],
-                                          child: Text(
-                                              "${LoanUserData[0][0]["Amount"]}",
-                                              style: drawer_text)),
-                                      Text(LoanUserData[0][0]["Start"],
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          )),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Container(
-                                      height: 100,
-                                      width: MediaQuery.of(context).size.width,
-                                      child: ListView.builder(
-                                          shrinkWrap: true,
-                                          physics:
-                                              const BouncingScrollPhysics(),
-                                          scrollDirection: Axis.horizontal,
-                                          itemCount: LoanCompletedata[0].length,
-                                          itemBuilder: (context, index) {
-                                            bool col = true;
-                                            if (LoanCompletedata[0][index]
-                                                    ["Due"] ==
-                                                0) {
-                                              col = false;
-                                            }
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10,
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Column(
-                                                    children: [
-                                                      Text("Due ${index + 1}",
-                                                          style:
-                                                              loan_details_design),
-                                                      CircleAvatar(
-                                                          radius:
-                                                              size.width * 0.08,
-                                                          backgroundColor: col
-                                                              ? Colors
-                                                                  .green[400]
-                                                              : Colors.red,
-                                                          child: Text(
-                                                              "${LoanCompletedata[0][index]["Due"]}",
-                                                              style:
-                                                                  drawer_text)),
-                                                      Text(
-                                                        "${LoanCompletedata[0][index]["DueDate"]}",
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                            );
-                                          }),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }),
-                    ],
-                  ),
-                );
-              }),
-        );
-      },
     );
   }
 }
